@@ -82,6 +82,41 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: {
+                localIdentName: '[name]__[local]___[hash:base64:5]', // 样式类名的格式
+              },
+              esModule: true, // 启用 ES 模块语法
+              sourceMap: true,
+            },
+          },
+        ],
+      },
+      {
+        test: /\.module\.less$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: {
+              modules: { localIdentName: '[name]__[local]___[hash:base64:5]' },
+              sourceMap: true,
+            },
+          },
+          'less-loader',
+        ],
+      },
+      {
+        test: /\.less$/,
+        exclude: /\.module\.less$/,
+        use: ['style-loader', 'css-loader', 'less-loader'],
+      },
     ],
   },
   stats: {

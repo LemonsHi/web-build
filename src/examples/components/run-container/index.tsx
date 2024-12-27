@@ -1,11 +1,11 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
+import { List } from 'antd';
 
 import { run } from '@/examples/utils';
 
 import { getFile, getHtmlTemplate } from '../../demos';
 
 import * as styles from './index.module.less';
-import { List } from 'antd';
 
 interface Props {
   exampleId: string;
