@@ -7,27 +7,13 @@ import { VirtualFileSystem } from '@/VirtualFileSystem';
 
 const emptyPolyfills = ['cluster', 'vm'];
 
-const polyfills = (rootDir: string) => {
+const polyfills = async (vfs: VirtualFileSystem, rootDir: string) => {
   return {
-    util: path.resolve(`${rootDir}/node_modules`, './util/util.js'),
-    https: require.resolve('stream-http'),
-    http: require.resolve('stream-http'),
-    url: require.resolve('url'),
-    zlib: require.resolve('browserify-zlib'),
-    path: require.resolve('path-browserify'),
-    stream: path.resolve(
-      `${rootDir}/node_modules`,
-      './stream-browserify/index.js'
-    ),
-    crypto: path.resolve(
-      `${rootDir}/node_modules`,
-      './crypto-browserify/index.js'
-    ),
-    os: require.resolve('os-browserify/browser'),
-    tty: require.resolve('tty-browserify'),
-    events: path.resolve(`${rootDir}/node_modules`, './events/events.js'),
-    fs: require.resolve('browserify-fs'),
-    buffer: path.resolve(`${rootDir}/node_modules`, './buffer/index.js'),
+    util: await vfs.reslovePath(rootDir, 'util'),
+    stream: await vfs.reslovePath(rootDir, 'stream-browserify'),
+    crypto: await vfs.reslovePath(rootDir, 'crypto-browserify'),
+    events: await vfs.reslovePath(rootDir, 'events'),
+    buffer: await vfs.reslovePath(rootDir, 'buffer'),
   };
 };
 
@@ -56,7 +42,7 @@ export const polyfillLoader = (
     });
 
     /** polyfill 处理 */
-    for (const [pkgName, pkgPath] of Object.entries(polyfills(rootDir))) {
+    for (const [pkgName, pkgPath] of Object.entries(polyfills(vfs,rootDir))) {
       build.onResolve({ filter: new RegExp(`^${pkgName}$`) }, () => ({
         path: path.resolve(rootDir, pkgPath),
         namespace: NAMESPACE,

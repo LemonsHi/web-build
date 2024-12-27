@@ -5,13 +5,7 @@ import { VirtualFileSystem } from '@/VirtualFileSystem';
 import { IPlugin } from '@/types';
 import { ROOT_DIR } from '@/constants';
 
-import {
-  browserMap,
-  getNodeModulesPath,
-  handlerDirectory,
-  hasExtension,
-  resolveWithExtensions,
-} from '../utils';
+import { resolveWithExtensions } from '../utils';
 
 const NAMESPACE = 'virtual-fs';
 
@@ -23,6 +17,8 @@ export const virtualFsLoader = (
 ): IPlugin => {
   const { external = [], alias = {} } = options || {};
 
+  const pathCache = new Map<string, string>();
+
   return {
     name: 'virtual-fs-loader',
     setup(build) {
@@ -33,11 +29,13 @@ export const virtualFsLoader = (
        * @returns 一个包含路径和命名空间的对象。如果 `resolvedPath` 在 `browserMap` 中存在对应的映射，
        * 则返回映射后的路径和命名空间；否则返回原始路径和命名空间。
        */
-      const handleRetrun = (resolvedPath: string): OnResolveResult => {
-        if (browserMap[resolvedPath]) {
-          return { path: browserMap[resolvedPath], namespace: NAMESPACE };
+      const handleRetrun = (
+        resolvedPath: string,
+        importPath: string
+      ): OnResolveResult => {
+        if (!importPath.startsWith('.')) {
+          pathCache.set(importPath, resolvedPath);
         }
-
         return { path: resolvedPath, namespace: NAMESPACE };
       };
 
@@ -50,30 +48,16 @@ export const virtualFsLoader = (
        */
       const handle = async (resolvedPath: string, importPath: string) => {
         const isFile = await vfs.isFile(resolvedPath);
-        const isDirectory = await vfs.isDirectory(resolvedPath);
 
         /** step1: 文件类型处理 */
         if (isFile) {
-          return handleRetrun(resolvedPath);
+          return handleRetrun(resolvedPath, importPath);
         }
 
-        /** step2: 文件夹类型处理 */
-        if (isDirectory) {
-          const directoryPath = await handlerDirectory(
-            vfs,
-            rootDir,
-            resolvedPath
-          );
-          if (directoryPath) {
-            return handleRetrun(directoryPath);
-          }
-          return { warnings: [{ text: `无法解析模块：${importPath}` }] };
-        }
-
-        /** step3: 隐藏后缀类型处理 */
+        /** step2: 隐藏后缀类型处理 */
         const suffixPath = await resolveWithExtensions(vfs, resolvedPath);
         if (suffixPath) {
-          return handleRetrun(suffixPath);
+          return handleRetrun(suffixPath, importPath);
         }
 
         /** step4: 警告 */
@@ -81,7 +65,7 @@ export const virtualFsLoader = (
       };
 
       build.onResolve({ filter: /.*/ }, async (args) => {
-        let { path: importPath, importer } = args;
+        let { path: importPath, importer, kind } = args;
 
         /** case: external 处理 */
         if (external?.includes(importPath)) {
@@ -96,6 +80,13 @@ export const virtualFsLoader = (
           }
         }
 
+        if (pathCache.has(importPath)) {
+          return {
+            path: pathCache.get(importPath),
+            namespace: NAMESPACE,
+          };
+        }
+
         /** case: 相对引用 */
         if (
           importPath === '.' ||
@@ -108,21 +99,22 @@ export const virtualFsLoader = (
           return await handle(resolvedPath, importPath);
         }
 
-        /** case: 绝对路径 */
-        const outPath = await handle(importPath, importPath);
-        if (outPath.path) return outPath;
+        /** case: node_modules 引用 */
+        const modulePath = await vfs.reslovePath(rootDir, importPath, {
+          ...(kind === 'require-call'
+            ? {
+                packageFilter: (pkg, pkgdir) => {
+                  if (!pkg.main) {
+                    // 如果没有 main 字段，默认使用 index.js
+                    pkg.main = 'index.js';
+                  }
+                  return pkg;
+                },
+              }
+            : {}),
+        });
 
-        /** case: 获取 node_modules 路径 */
-        const nodeModulesPath = await getNodeModulesPath(
-          vfs,
-          rootDir,
-          importer
-        );
-        let filePath = path.resolve(nodeModulesPath, `./${importPath}`);
-
-        browserMap[filePath] && (filePath = browserMap[filePath]);
-
-        return await handle(filePath, importPath);
+        return await handle(modulePath, importPath);
       });
 
       build.onLoad({ filter: /.*/, namespace: NAMESPACE }, async (args) => {
@@ -137,7 +129,7 @@ export const virtualFsLoader = (
 
           return {
             contents: content,
-            loader: (loader === 'mjs' ? 'js' : loader) as Loader,
+            loader: (['mjs', 'cjs'].includes(loader) ? 'js' : loader) as Loader,
           };
         } catch (e: any) {
           return { errors: [{ text: `加载失败：${e.message}` }] };

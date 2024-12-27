@@ -35,11 +35,9 @@ export const esbuildConfig = (
     bundle: true,
     outfile: `${rootDir}/dist/app.js`,
     write: false,
-    sourcemap: false,
+    sourcemap: true,
     define: {
       'process.env.NODE_ENV': '"production"',
-      global: 'window',
-      process: JSON.stringify(require('process/browser')),
       ...define,
     },
     jsx: 'automatic',
@@ -56,7 +54,7 @@ export const esbuildConfig = (
       streamingLogsLoader.streamingLogsLoader(startTime, fileList, logStream),
       ...plugins,
     ],
-    format: 'iife',
-    platform: 'browser',
+    target: ['esnext'],
+    format: 'esm',
   };
 };

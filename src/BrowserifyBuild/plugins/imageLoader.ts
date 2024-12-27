@@ -9,23 +9,6 @@ enum LoaderNamespace {
   VirtualImage = 'virtual-image-loader',
 }
 
-// const IMAGE_HOST_LIST = {
-//   '/img_p': /^https:\/\/p.ljcdn.com/,
-//   '/img_file': /^https:\/\/file.ljcdn.com/,
-//   '/img_ke': /^https:\/\/p.ke.com/,
-//   '/img_ljcdn': /^https:\/\/img.ljcdn.com/,
-//   '/img_zoe': /^https:\/\/zos.alipayobjects.com/,
-// };
-
-// const imageHostCheck = (url: string) => {
-//   for (const [key, reg] of Object.entries(IMAGE_HOST_LIST)) {
-//     if (reg.test(url)) {
-//       return url.replace(reg, key);
-//     }
-//   }
-//   return url;
-// };
-
 export const imageLoader = (vfs: VirtualFileSystem): IPlugin => ({
   name: 'image-loader',
   setup(build) {
@@ -52,8 +35,6 @@ export const imageLoader = (vfs: VirtualFileSystem): IPlugin => ({
           ? `https:${importPath}`
           : importPath;
 
-        // HTTP 图片链接
-        // const path = imageHostCheck(imageUrl);
         return {
           path: imageUrl,
           namespace: LoaderNamespace.HttpImage,

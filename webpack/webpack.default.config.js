@@ -2,6 +2,8 @@ const webpack = require('webpack');
 const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
 module.exports = {
   mode: process.env.NODE_ENV === 'development' ? 'development' : 'production', // 根据环境变量设置模式
   output: {
@@ -29,20 +31,31 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: ['.ts', '.js'], // 解析文件扩展名
+    extensions: ['.ts', '.js', '.tsx', '.jsx'], // 解析文件扩展名
     alias: {
       '@': path.resolve(__dirname, '../src'),
     },
     fallback: {
+      fs: require.resolve('browserify-fs'),
       path: require.resolve('path-browserify'),
       stream: require.resolve('stream-browserify'),
       vm: require.resolve('vm-browserify'),
       buffer: require.resolve('buffer'),
+      os: require.resolve('os-browserify/browser'),
+      process: require.resolve('process/browser'),
     },
   },
   plugins: [
     new webpack.ProvidePlugin({
+      process: 'process/browser',
       Buffer: ['buffer', 'Buffer'],
+    }),
+    new webpack.DefinePlugin({
+      'process.env': JSON.stringify(process.env),
+      'process.version': JSON.stringify('v14.17.0'), // 你可以根据需要设置 Node.js 版本
+      'process.versions': JSON.stringify({
+        node: '14.17.0', // 同上
+      }),
     }),
   ],
   module: {

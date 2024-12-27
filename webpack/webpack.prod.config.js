@@ -8,7 +8,7 @@ module.exports = merge(common, {
     index: path.resolve(__dirname, '../src/index.ts'), // 项目入口文件
   },
   output: {
-    library: 'WebContainer',
+    library: 'WebBuild',
     libraryTarget: 'umd', // 以 UMD 格式导出，兼容多种模块系统
   },
   optimization: {

@@ -1,8 +1,10 @@
 import { BFSRequire, configure } from 'browserfs';
+import browserResolve from 'browser-resolve';
 import { ApiError } from 'browserfs/dist/node/core/api_error';
 import { FSModule } from 'browserfs/dist/node/core/FS';
 import Stats from 'browserfs/dist/node/core/node_fs_stats';
 import path from 'path-browserify';
+import resolve from 'browser-resolve';
 
 /**
  * 虚拟文件系统类，用于在内存中模拟文件系统操作。
@@ -348,6 +350,76 @@ export class VirtualFileSystem {
       await deleteRecursively(dirPath);
     } catch (err: any) {
       return Promise.reject(err);
+    }
+  }
+
+  /**
+   * 异步解析路径方法。
+   *
+   * @param rootDir - 根目录路径。
+   * @param pkgName - 包名称。
+   * @returns 返回一个解析后的路径字符串的 Promise。
+   * @throws 如果在解析过程中发生错误，则返回一个被拒绝的 Promise。
+   */
+  async reslovePath(rootDir: string, pkgName: string, config?: resolve.Opts) {
+    try {
+      const fs = await this.checkFs();
+      return await new Promise<string>((resolve, reject) => {
+        browserResolve(
+          pkgName,
+          {
+            basedir: rootDir,
+            packageFilter: (pkg, pkgdir) => {
+              if (pkg.module) {
+                // 优先使用 module 字段
+                pkg.main = pkg.module;
+              } else if (!pkg.main) {
+                // 如果没有 main 字段，默认使用 index.js
+                pkg.main = 'index.js';
+              }
+              return pkg;
+            },
+            ...config,
+            isFile: (file, cb) => {
+              fs.stat(file, (err, stats) => {
+                if (err) {
+                  return cb(null, false);
+                }
+                cb(null, !!stats?.isFile());
+              });
+            },
+            isDirectory: (directory, cb) => {
+              fs.stat(directory, (err, stats) => {
+                if (err) {
+                  return cb(null, false);
+                }
+                cb(null, !!stats?.isDirectory());
+              });
+            },
+            realpath: (file, cb) => {
+              // BrowserFS 不支持符号链接，直接返回原路径
+              cb(null, file);
+            },
+            readFile: (file, cb) => {
+              fs.readFile(file, 'utf8', (err, data) => {
+                if (err) {
+                  return cb(err);
+                }
+                cb(null, data);
+              });
+            },
+          },
+          (error, resolvedPath) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(resolvedPath || '');
+            }
+          }
+        );
+      });
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 }

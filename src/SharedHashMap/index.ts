@@ -1,5 +1,5 @@
 /**
- * SharedHashMap 缓存区域
+ * SharedHashMap 缓存区域（暂时用不到）
  */
 export class SharedHashMap {
   /** 共享缓冲区 */
