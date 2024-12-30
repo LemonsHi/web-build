@@ -49,18 +49,15 @@ class DependenciesAnylysisWorker {
    */
   async initdependenciesAnylysisWorker() {
     /** step1: 初始化虚拟文件模块 */
-    this.vfs = new VirtualFileSystem();
+    this.vfs = await VirtualFileSystem.init();
 
-    /** step2: 需要等待虚拟文件初始化 */
-    await this.vfs.fsPromise;
-
-    /** step3: 初始化包管理器 */
+    /** step2: 初始化包管理器 */
     this.packageManager = new PackageManager(this.vfs);
 
-    /** step4: 初始化日志记录器 */
+    /** step3: 初始化日志记录器 */
     this.logger = new Logger();
 
-    /** step5: 初始化worker状态 */
+    /** step4: 初始化worker状态 */
     this.padding = false;
 
     return { success: true };

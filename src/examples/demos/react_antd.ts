@@ -1,4 +1,5 @@
-import { IFile } from '@/WebContainer';
+import { IFile } from '../../WebContainer';
+import { commonAppFile } from './common';
 
 const file: IFile = {
   'package.json': {
@@ -28,18 +29,7 @@ const file: IFile = {
     children: {
       'index.jsx': {
         fileType: 'document',
-        content: `
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import Demo from './components/demo';
-
-const App = () => {
-  return <Demo />;
-};
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-`,
+        content: `${commonAppFile}`,
       },
       components: {
         fileType: 'directory',
@@ -69,24 +59,4 @@ export default Demo;
   },
 };
 
-const htmlTemplate = (codeString?: string, cssString?: string) => `
-<!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" />
-    <title>web-build</title>
-    <style>${cssString}</style>
-    <style>html,body{max-width: 375px;}</style>
-    <style>::-webkit-scrollbar{display: none;}</style>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module">
-      ${codeString}
-    </script>
-  </body>
-</html>
-`;
-
-export default { file, htmlTemplate };
+export default { file };

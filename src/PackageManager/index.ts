@@ -20,13 +20,6 @@ import { ILogItem } from '@/types';
  * - 获取指定包的元数据。
  * - 下载并解压 tarball 文件。
  * - 安装指定的依赖包及其依赖项。
- *
- * @example
- * ```typescript
- * const vfs = new VirtualFileSystem();
- * const packageManager = new PackageManager(vfs);
- * await packageManager.installPackage('lodash');
- * ```
  */
 export class PackageManager {
   private vfs: VirtualFileSystem;

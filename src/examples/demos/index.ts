@@ -1,15 +1,18 @@
-import { IFile } from '@/WebContainer';
-
 import react_antd from './react_antd';
+import react_antd_form from './react_antd_form';
 
-const demos: Record<
-  string,
-  {
-    file: IFile;
-    htmlTemplate: (codeString?: string, cssString?: string) => string;
-  }
-> = {
-  react_antd: { file: react_antd.file, htmlTemplate: react_antd.htmlTemplate },
+import { commonHtmlTemplate } from './common';
+import { IDemo } from '../types';
+
+const demos: Record<string, IDemo> = {
+  react_antd: {
+    file: react_antd.file,
+    htmlTemplate: (react_antd as any)?.htmlTemplate,
+  },
+  react_antd_form: {
+    file: react_antd_form.file,
+    htmlTemplate: (react_antd_form as any)?.htmlTemplate,
+  },
 };
 
 export const getFile = (key: string) => {
@@ -17,5 +20,5 @@ export const getFile = (key: string) => {
 };
 
 export const getHtmlTemplate = (key: string) => {
-  return demos[key].htmlTemplate;
+  return demos[key].htmlTemplate || commonHtmlTemplate;
 };

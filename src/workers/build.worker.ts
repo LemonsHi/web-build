@@ -38,15 +38,12 @@ class BuildWorker {
    */
   async initBuildWorker() {
     /** step1: 初始化虚拟文件模块 */
-    this.vfs = new VirtualFileSystem();
+    this.vfs = await VirtualFileSystem.init();
 
-    /** step2: 需要等待虚拟文件初始化 */
-    await this.vfs.fsPromise;
-
-    /** step3: 初始化 Browserify 构建工具 */
+    /** step2: 初始化 Browserify 构建工具 */
     this.browserifyBuild = new BrowserifyBuild(BuildType.ESBUILD, this.vfs);
 
-    /** step4: 初始化日志记录器 */
+    /** step3: 初始化日志记录器 */
     this.logger = new Logger();
 
     return { success: true };

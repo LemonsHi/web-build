@@ -36,7 +36,7 @@ npm run start
 
 ## 示例
 
-请参考 demos 文件夹 获取更多使用示例。
+请参考 examples/demos 文件夹 获取更多使用示例。
 
 ## 贡献
 

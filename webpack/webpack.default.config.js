@@ -99,6 +99,11 @@ module.exports = {
         ],
       },
       {
+        test: /\.less$/,
+        exclude: /\.module\.less$/,
+        use: ['style-loader', 'css-loader', 'less-loader'],
+      },
+      {
         test: /\.module\.less$/,
         use: [
           'style-loader',
@@ -111,11 +116,6 @@ module.exports = {
           },
           'less-loader',
         ],
-      },
-      {
-        test: /\.less$/,
-        exclude: /\.module\.less$/,
-        use: ['style-loader', 'css-loader', 'less-loader'],
       },
     ],
   },

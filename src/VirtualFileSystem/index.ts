@@ -9,29 +9,10 @@ import resolve from 'browser-resolve';
 /**
  * 虚拟文件系统类，用于在内存中模拟文件系统操作。
  * 提供文件的读写、删除和存在性检查等功能。
- *
- * @example
- * ```typescript
- * const vfs = new VirtualFileSystem();
- *
- * // 写入文件
- * await vfs.writeFile('/example.txt', 'Hello, World!');
- *
- * // 读取文件
- * const content = await vfs.readFile('/example.txt');
- * console.log(content); // 输出: Hello, World!
- *
- * // 检查文件是否存在
- * const exists = await vfs.fileExists('/example.txt');
- * console.log(exists); // 输出: true
- *
- * // 删除文件
- * await vfs.deleteFile('/example.txt');
- * ```
  */
 export class VirtualFileSystem {
-  private fs: FSModule | null = null;
-  fsPromise: Promise<FSModule> | null = null;
+  private fs: FSModule;
+  static fsPromise: FSModule;
 
   /**
    * 构造函数，初始化虚拟文件系统。
@@ -42,18 +23,24 @@ export class VirtualFileSystem {
    * @constructor
    * @throws {ApiError} 如果配置过程中发生错误，则会拒绝 Promise 并抛出错误。
    */
-  constructor() {
-    if (!this.fsPromise) {
-      this.fsPromise = new Promise((resolve, reject) => {
+  constructor(fs: FSModule) {
+    this.fs = fs;
+  }
+
+  static async init() {
+    try {
+      this.fsPromise = await new Promise((resolve, reject) => {
         configure({ fs: 'IndexedDB', options: {} }, (err?: ApiError | null) => {
           if (err) {
             reject(err);
           } else {
-            this.fs = BFSRequire('fs');
-            resolve(this.fs);
+            resolve(BFSRequire('fs'));
           }
         });
       });
+      return new VirtualFileSystem(this.fsPromise);
+    } catch (e) {
+      return Promise.reject(e);
     }
   }
 
@@ -66,9 +53,7 @@ export class VirtualFileSystem {
     if (this?.fs) {
       return this.fs;
     }
-    if (this.fsPromise) {
-      return await this.fsPromise;
-    }
+
     return Promise.reject(new Error('内存文件系统未初始化'));
   }
 

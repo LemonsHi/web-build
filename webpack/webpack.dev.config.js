@@ -7,45 +7,6 @@ module.exports = merge(common, {
   entry: {
     index: path.resolve(__dirname, '../src/examples/index.tsx'),
   },
-  module: {
-    rules: [
-      {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: {
-                localIdentName: '[name]__[local]___[hash:base64:5]', // 样式类名的格式
-              },
-              esModule: true, // 启用 ES 模块语法
-              sourceMap: true,
-            },
-          },
-        ],
-      },
-      {
-        test: /\.module\.less$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'css-loader',
-            options: {
-              modules: { localIdentName: '[name]__[local]___[hash:base64:5]' },
-              sourceMap: true,
-            },
-          },
-          'less-loader',
-        ],
-      },
-      {
-        test: /\.less$/,
-        exclude: /\.module\.less$/,
-        use: ['style-loader', 'css-loader', 'less-loader'],
-      },
-    ],
-  },
   devtool: 'source-map', // 生成 source map 以便调试
   devServer: {
     proxy: [

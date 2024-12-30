@@ -1,5 +1,7 @@
-import { IFile, WebContainer, WebContainerConfig } from '@/WebContainer';
-import { ILogItem } from '@/types';
+import { IFile, WebContainer, WebContainerConfig } from '../../WebContainer';
+import { ILogItem } from '../../types';
+
+let webcontainerInstance: WebContainer;
 
 export const run = async (
   file: IFile,
@@ -9,10 +11,12 @@ export const run = async (
   try {
     /** step1: 启动 WebContaniner 容器 */
     addLog('开始初始化 @ke/webContainer 容器...');
-    const webcontainerInstance = await WebContainer.boot({
-      clearRootDir: false,
-      ...config,
-    });
+    webcontainerInstance =
+      webcontainerInstance ||
+      (await WebContainer.boot({
+        clearRootDir: false,
+        ...config,
+      }));
     addLog('初始化 @ke/webContainer 容器完成！！');
 
     /** step2: 挂载文件 */

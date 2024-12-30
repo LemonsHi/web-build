@@ -101,12 +101,9 @@ export class WebContainer {
   static async boot(webContainerConfig?: WebContainerConfig) {
     try {
       /** step1: 初始化虚拟文件模块 */
-      this.vfs = new VirtualFileSystem();
+      this.vfs = await VirtualFileSystem.init();
 
-      /** step2: 需要等待虚拟文件初始化 */
-      await this.vfs.fsPromise;
-
-      /** step3: 创建根目录 */
+      /** step2: 创建根目录 */
       const rootDir = webContainerConfig?.rootDir || ROOT_DIR;
 
       /** step4: 清空根目录 */
