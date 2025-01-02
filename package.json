@@ -13,7 +13,8 @@
     "build:types": "tsc --emitDeclarationOnly",
     "build:js": "webpack --config webpack/webpack.prod.config.js",
     "build": "rm -rf dist && npm run build:types && npm run build:js",
-    "start": "NODE_ENV=development npx webpack serve --config webpack/webpack.dev.config.js"
+    "start": "NODE_ENV=development npx webpack serve --config webpack/webpack.dev.config.js",
+    "test": "jest --passWithNoTests"
   },
   "keywords": [
     "browser-build"
@@ -29,6 +30,7 @@
     "@babel/preset-react": "^7.26.3",
     "@babel/preset-typescript": "^7.26.0",
     "@types/browser-resolve": "^2.0.4",
+    "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.13",
     "@types/pako": "^2.0.3",
     "@types/path-browserify": "^1.0.3",
@@ -40,7 +42,9 @@
     "babel-loader": "^9.2.1",
     "buffer": "^6.0.3",
     "css-loader": "^7.1.2",
+    "jest": "^29.7.0",
     "less-loader": "^12.2.0",
+    "node-fetch": "^2.7.0",
     "os-browserify": "^0.3.0",
     "process": "^0.11.10",
     "react": "^18.3.1",
@@ -48,6 +52,7 @@
     "stream-browserify": "^3.0.0",
     "style-loader": "^4.0.0",
     "terser-webpack-plugin": "^5.3.10",
+    "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",
     "typescript": "^5.7.2",
     "util": "^0.12.5",

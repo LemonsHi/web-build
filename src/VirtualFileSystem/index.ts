@@ -1,4 +1,4 @@
-import { BFSRequire, configure } from 'browserfs';
+import { BFSRequire, configure, FileSystemConfiguration } from 'browserfs';
 import browserResolve from 'browser-resolve';
 import { ApiError } from 'browserfs/dist/node/core/api_error';
 import { FSModule } from 'browserfs/dist/node/core/FS';
@@ -27,16 +27,19 @@ export class VirtualFileSystem {
     this.fs = fs;
   }
 
-  static async init() {
+  static async init(config?: FileSystemConfiguration) {
     try {
       this.fsPromise = await new Promise((resolve, reject) => {
-        configure({ fs: 'IndexedDB', options: {} }, (err?: ApiError | null) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(BFSRequire('fs'));
+        configure(
+          { fs: config?.fs || 'IndexedDB', options: config?.options },
+          (err?: ApiError | null) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(BFSRequire('fs'));
+            }
           }
-        });
+        );
       });
       return new VirtualFileSystem(this.fsPromise);
     } catch (e) {

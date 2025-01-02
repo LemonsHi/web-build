@@ -5,11 +5,12 @@ import { Subject } from 'rxjs';
 import path from 'path-browserify';
 
 import { VirtualFileSystem } from '@/VirtualFileSystem';
-import { ROOT_DIR } from '@/constants';
-import { Logger } from '@/Logger';
 
 import { skipPackages } from './constants';
-import { ILogItem } from '@/types';
+
+import { Logger } from '../Logger';
+import { ROOT_DIR } from '../constants';
+import { ILogItem } from '../types';
 
 /**
  * PackageManager 类用于管理虚拟文件系统中的依赖包。
@@ -25,7 +26,6 @@ export class PackageManager {
   private vfs: VirtualFileSystem;
   private cachePackages: Set<string>;
   private installedPackages: Set<string>;
-  private mateVersion: Record<string, any> | null = null;
 
   constructor(vfs: VirtualFileSystem) {
     this.vfs = vfs;
@@ -50,7 +50,7 @@ export class PackageManager {
       /** step1: 获取依赖包元信息 */
       const encodedPackageName = encodeURIComponent(packageName);
       const url = `${
-        options?.registery || 'https://registry.npmjs.org'
+        options?.registry || 'https://registry.npmjs.org'
       }/${encodedPackageName}/${version.replace(/^[~^]/, '')}`;
       const response = await fetch(url);
 
@@ -260,12 +260,13 @@ export class PackageManager {
     options?: Record<string, string>
   ) {
     try {
-      /** step1: 获取 NPM Registry 中的包信息 */
+      /** step1: 获取 NPM registry 中的包信息 */
       const url = `${
-        options?.registery || 'https://registry.npmjs.org/'
+        options?.registry || 'https://registry.npmjs.org'
       }/${encodeURIComponent(packageName)}`;
 
       const response = await fetch(url);
+
       if (!response.ok) {
         throw new Error(`无法获取 ${packageName} 的元数据`);
       }
@@ -366,15 +367,11 @@ export class PackageManager {
       const depNames = Object.keys(mateData?.dependencies || {});
       logStream && Logger.log(logStream, `分析结束: ${pkgName}`);
 
-      const keRegisteryReg = /^http:\/\/artifactory\.intra\.ke\.com/g;
-
       return {
         currentNpmInfo: [
           mateData.packageName,
           mateData.resolvedVersion,
-          keRegisteryReg.test(mateData.tarballUrl)
-            ? mateData.tarballUrl.replace(keRegisteryReg, '/ke-registry-proxy')
-            : mateData.tarballUrl,
+          mateData.tarballUrl,
         ],
         dependencies: depNames.map<[string, string]>((depName) => [
           depName,
