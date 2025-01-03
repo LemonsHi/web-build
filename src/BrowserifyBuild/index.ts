@@ -19,9 +19,30 @@ export enum BuildType {
 }
 
 export class BrowserifyBuild {
+  /**
+   * 编译工具类型。
+   */
   private buildType: BuildType;
+
+  /**
+   * 虚拟文件系统实例。
+   */
   private vfs: VirtualFileSystem;
+
+  /**
+   * 初始化完成的 Promise 对象。
+   */
   private initializeComplete: Promise<void>;
+
+  /**
+   * less 编译器实例。
+   */
+  private less?: LessStatic = undefined;
+
+  /**
+   * 日志流。
+   */
+  private logStream?: Subject<ILogItem> = undefined;
 
   constructor(buildType: BuildType, vfs: VirtualFileSystem) {
     this.buildType = buildType;
@@ -43,13 +64,18 @@ export class BrowserifyBuild {
    */
   private getDefaultBuildConfig(
     rootDir: string = ROOT_DIR,
-    buildConfig?: esbuild.BuildOptions,
-    logStream?: Subject<ILogItem>
+    buildConfig?: esbuild.BuildOptions
   ) {
     switch (this.buildType) {
       case BuildType.ESBUILD: {
         return {
-          ...esbuildConfig(this.vfs, rootDir, buildConfig, logStream),
+          ...esbuildConfig({
+            rootDir,
+            esbuildConfig: buildConfig,
+            vfs: this.vfs,
+            logStream: this.logStream,
+            less: this.less,
+          }),
         };
       }
     }
@@ -61,28 +87,8 @@ export class BrowserifyBuild {
    * @param {Record<string, any>} [buildConfig] - 可选的构建配置对象，覆盖默认配置。
    * @returns {Promise<string | undefined>} 返回一个 Promise，解析为构建后的输出代码字符串，如果构建失败则返回一个被拒绝的 Promise。
    * @throws {Error} 如果构建过程中发生错误，将抛出错误。
-   *
-   * @example
-   * ```typescript
-   * const buildConfig = {
-   *   entryPoints: ['src/index.ts'],
-   *   bundle: true,
-   *   outfile: 'dist/bundle.js',
-   * };
-   *
-   * esbuildBuild(buildConfig)
-   *   .then(outputCode => {
-   *     console.log('构建成功:', outputCode);
-   *   })
-   *   .catch(error => {
-   *     console.error('构建失败:', error);
-   *   });
-   * ```
    */
-  private async esbuildBuild(
-    buildConfig?: Record<string, any>,
-    logStream?: Subject<ILogItem>
-  ) {
+  private async esbuildBuild(buildConfig?: Record<string, any>) {
     try {
       const { rootDir = ROOT_DIR, ...rest } = buildConfig || {};
 
@@ -91,7 +97,7 @@ export class BrowserifyBuild {
 
       /** step2: 执行构建 */
       const result = await esbuild.build({
-        ...this.getDefaultBuildConfig(rootDir, rest, logStream),
+        ...this.getDefaultBuildConfig(rootDir, rest),
       });
 
       /** step3: 将构建后的代码写入虚拟文件系统 */
@@ -132,12 +138,16 @@ export class BrowserifyBuild {
    */
   async runBuild(
     buildConfig?: Record<string, any>,
-    logStream?: Subject<ILogItem>
+    logStream?: Subject<ILogItem>,
+    lessLoader?: LessStatic
   ) {
+    this.less = lessLoader;
+    this.logStream = logStream;
+
     switch (this.buildType) {
       /** esbuil 编译 */
       case BuildType.ESBUILD: {
-        return await this.esbuildBuild(buildConfig, logStream);
+        return await this.esbuildBuild(buildConfig);
       }
       default:
         return Promise.reject(

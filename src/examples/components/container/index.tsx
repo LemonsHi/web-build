@@ -8,6 +8,7 @@ import * as styles from './index.module.less';
 const data = [
   { key: 'react_antd', desc: 'react+antd 的项目例子' },
   { key: 'react_antd_form', desc: 'react+antd+form 的项目例子' },
+  { key: 'react_less', desc: 'react+less 的项目例子' },
 ];
 
 const Container = () => {

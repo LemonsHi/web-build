@@ -10,7 +10,10 @@ import { VirtualFileSystem } from '@/VirtualFileSystem';
  * 当加载 `.less` 文件时，插件会通过 `fetch` 请求获取文件内容，并使用 `less.render` 方法将其编译为 CSS。
  * 最终返回包含编译后 CSS 内容的对象，并指定加载器为 `css`。
  */
-export const lessLoader = (vfs: VirtualFileSystem): IPlugin => {
+export const lessLoader = (
+  vfs: VirtualFileSystem,
+  less?: LessStatic
+): IPlugin => {
   const compileLess = (lessCode: string) => {
     const variableRegex = /@([a-zA-Z0-9_-]+)\s*:\s*(.+);/g;
     const nestedRegex = /([^{]+)\{([^{}]+)\}/g;
@@ -56,7 +59,8 @@ export const lessLoader = (vfs: VirtualFileSystem): IPlugin => {
         const lessCode = (await vfs.readFile(args.path)) as string;
 
         // 编译 LESS 为 CSS
-        const css = lessCode && compileLess(lessCode);
+        // const css = lessCode && compileLess(lessCode);
+        const css = lessCode && (await less?.render(lessCode))?.css;
 
         return {
           contents: css,

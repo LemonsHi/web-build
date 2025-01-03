@@ -1,4 +1,5 @@
 import { expose } from 'threads/worker';
+// import less from 'less';
 
 import { Logger } from '@/Logger';
 import { VirtualFileSystem } from '@/VirtualFileSystem';
@@ -20,6 +21,11 @@ class BuildWorker {
    */
   private logger: Logger | null = null;
 
+  /**
+   * less 编译器实例。
+   */
+  private less: LessStatic | null = null;
+
   constructor() {}
 
   /**
@@ -29,6 +35,50 @@ class BuildWorker {
    */
   subscribeLogStream() {
     return this.logger?.subscribeLogStream();
+  }
+
+  /**
+   * 初始化全局对象 `global.window` 和 `global.document`。
+   *
+   * 该方法确保在 `global` 对象上存在 `window` 和 `document` 属性，
+   * 并为这些属性提供基本的默认实现，以避免在某些环境中因缺少这些属性而导致的错误。
+   *
+   * - `global.window`:
+   *   - `location`: 空对象。
+   *   - `document`: 包含以下属性和方法：
+   *     - `head`: 包含 `appendChild` 方法的空对象。
+   *     - `createElement`: 返回包含 `appendChild` 方法的空对象的函数。
+   *     - `createTextNode`: 返回空对象的函数。
+   *     - `getElementById`: 返回包含 `appendChild` 方法的空对象的函数。
+   *     - `getElementsByTagName`: 返回空数组的函数。
+   *
+   * - `global.document`:
+   *   - `head`: 包含 `appendChild` 方法的空对象。
+   *   - `createElement`: 返回包含 `appendChild` 方法的空对象的函数。
+   *   - `createTextNode`: 返回空对象的函数。
+   *   - `getElementById`: 返回包含 `appendChild` 方法的空对象的函数。
+   *   - `getElementsByTagName`: 返回空数组的函数。
+   */
+  initGlobal() {
+    global.window = global.window || {
+      location: {},
+      document: {
+        // location: {location}
+        head: { appendChild: () => {} },
+        createElement: () => ({ appendChild: () => {} }),
+        createTextNode: () => ({}),
+        getElementById: () => ({ appendChild: () => {} }),
+        getElementsByTagName: () => [],
+      },
+    };
+    global.document = global.document || {
+      // location: {location}
+      head: { appendChild: () => {} },
+      createElement: () => ({ appendChild: () => {} }),
+      createTextNode: () => ({}),
+      getElementById: () => ({ appendChild: () => {} }),
+      getElementsByTagName: () => [],
+    };
   }
 
   /**
@@ -46,6 +96,12 @@ class BuildWorker {
     /** step3: 初始化日志记录器 */
     this.logger = new Logger();
 
+    /** step4: 初始化全局对象 */
+    this.initGlobal();
+
+    /** step5: 初始化 less */
+    this.less = require('less');
+
     return { success: true };
   }
 
@@ -61,8 +117,12 @@ class BuildWorker {
    */
   async buildCommand(buildConfig?: Record<string, any>) {
     try {
-      if (this.browserifyBuild && this.logger) {
-        await this.browserifyBuild.runBuild(buildConfig, this.logger.logStream);
+      if (this.browserifyBuild && this.logger && this.less) {
+        await this.browserifyBuild.runBuild(
+          buildConfig,
+          this.logger.logStream,
+          this.less
+        );
         return { success: true };
       } else {
         throw new Error('browserifyBuild 或 logger 未初始化');

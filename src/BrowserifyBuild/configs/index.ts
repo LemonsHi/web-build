@@ -13,12 +13,23 @@ import {
   virtualFsLoader,
 } from '../plugins';
 
-export const esbuildConfig = (
-  vfs: VirtualFileSystem,
-  rootDir: string = ROOT_DIR,
-  esbuildConfig?: BuildOptions,
-  logStream?: Subject<ILogItem>
-): BuildOptions => {
+interface Props {
+  vfs: VirtualFileSystem;
+  rootDir: string;
+  esbuildConfig?: BuildOptions;
+  logStream?: Subject<ILogItem>;
+  less?: LessStatic;
+}
+
+export const esbuildConfig = (config: Props): BuildOptions => {
+  const {
+    vfs,
+    rootDir = ROOT_DIR,
+    esbuildConfig,
+    logStream,
+    less,
+  } = config || {};
+
   const startTime = new Date().getTime();
   const fileList = new Set<string>();
   const {
@@ -45,7 +56,7 @@ export const esbuildConfig = (
     treeShaking: true,
     plugins: [
       imageLoader.imageLoader(vfs),
-      lessLoader.lessLoader(vfs),
+      lessLoader.lessLoader(vfs, less),
       cssLoader.cssLoader(vfs, rootDir),
       virtualFsLoader.virtualFsLoader(vfs, rootDir, fileList, {
         external,

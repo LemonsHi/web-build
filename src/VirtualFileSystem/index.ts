@@ -31,7 +31,7 @@ export class VirtualFileSystem {
     try {
       this.fsPromise = await new Promise((resolve, reject) => {
         configure(
-          { fs: config?.fs || 'IndexedDB', options: config?.options },
+          { fs: config?.fs || 'IndexedDB', options: config?.options || {} },
           (err?: ApiError | null) => {
             if (err) {
               reject(err);
