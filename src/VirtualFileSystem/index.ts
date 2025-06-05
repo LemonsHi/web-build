@@ -318,7 +318,7 @@ export class VirtualFileSystem {
             )
         );
 
-        if (delFiles) return;
+        if (delFiles && delFiles.length) return;
 
         // 删除空目录
         await new Promise<void>((resolve, reject) =>
