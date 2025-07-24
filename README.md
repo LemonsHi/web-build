@@ -8,11 +8,15 @@
 
 ## 特性
 
-- 🌐 虚拟文件系统: 模拟 Node.js 文件操作。
-- ⚡ 多线程依赖管理: 高效下载和解析 package.json 中的依赖。
-- 🛠️ 自定义虚拟文件目录映射: 支持将代码中的依赖路径映射到虚拟文件目录。
-- 🚀 esbuild-wasm 编译: 快速编译代码，适用于在线场景。
-- 📂 依赖缓存: 缓存已下载的依赖，加速编译过程。
+- 🌐 虚拟文件系统：模拟 Node.js 文件操作。
+- ⚡ 多线程依赖管理：高效下载和解析 `package.json` 中的依赖。
+- 🛠️ 自定义虚拟文件目录映射：支持将代码中的依赖路径映射到虚拟文件目录。
+- 🚀 基于 `esbuild-wasm` 的编译：适用于在线场景的快速构建体验。
+- 📂 依赖缓存：缓存已下载的依赖，加速编译过程。
+
+## 环境要求
+
+- Node.js >= 18
 
 ## 安装
 
@@ -20,6 +24,7 @@
 
 ```bash
 git clone git@github.com:LemonsHi/web-build.git
+cd web-build
 ```
 
 2. 安装依赖：
@@ -34,10 +39,36 @@ npm run bootstrap
 npm run start
 ```
 
-## 示例
+## 快速上手
 
-请参考 examples/demos 文件夹 获取更多使用示例。
+以下示例演示如何在代码中使用 `WebContainer`：
+
+```typescript
+import { WebContainer } from 'web-build';
+
+const container = await WebContainer.boot();
+await container.mount({
+  'index.js': {
+    fileType: 'document',
+    content: 'console.log("Hello WebBuild")',
+  },
+});
+
+await container.spawn('npm', ['install'], (log) => {
+  console.log(log.message);
+});
+```
+
+更多示例请参见 `src/examples/demos` 目录。
+
+## 测试
+
+执行以下命令运行单元测试：
+
+```bash
+npm test
+```
 
 ## 贡献
 
-`WebBuild` 还有很多地方需要提升和优化，欢迎社区贡献！请参阅 CONTRIBUTING.md 获取贡献指南。
+`WebBuild` 还有很多地方需要提升和优化，欢迎社区贡献！请参阅 `CONTRIBUTING.md` 获取贡献指南。
